@@ -12,8 +12,11 @@ class AddViewController: UIViewController {
     let dlUI = DeadlineUI()
     var deadlineCalendarDate = Date()
     var deadlineCalendarView = UIView()
-    var hasSetUI = false
+    var monthViews = [UIView]()
     var deadlineDayLabels = [UILabel]()
+    var monthStringLabel = UILabel()
+    var hasSetUI = false
+    
     
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var descTextField: UITextField!
@@ -21,7 +24,6 @@ class AddViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        dlUI.getMonthDates(from: deadlineCalendarDate)
     }
     
     override func viewDidLayoutSubviews() {
@@ -35,28 +37,73 @@ class AddViewController: UIViewController {
     }
     
     @objc func leftArrowTapped() {
-        if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate) {
-            deadlineCalendarDate = newDate
-        }
-        let components = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
-        if let year = components.year, let month = components.month {
-            print("Year: \(year), Month: \(month)")
-            dlUI.createMonthStack(year: year, month: month)
-        }
-       
+        let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)!
+        deadlineCalendarDate = newDate
+        updateMonthLabelText()
+        print(deadlineCalendarDate)
+        UIView.animate(withDuration: 0.3, animations: {
+            for monthView in self.monthViews {
+                monthView.center.x += self.view.frame.width
+            }
+        }, completion: { finished in
+            if finished {
+                self.updateMonthViews()
+            }
+        })
     }
     
     @objc func rightArrowTapped() {
-        if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate) {
-            deadlineCalendarDate = newDate
-        }
-        let components = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
-        if let year = components.year, let month = components.month {
-            print("Year: \(year), Month: \(month)")
-            dlUI.createMonthStack(year: year, month: month)
-        }
+        let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate)!
+        deadlineCalendarDate = newDate
+        updateMonthLabelText()
+        print(deadlineCalendarDate)
+        UIView.animate(withDuration: 0.3, animations: {
+            for monthView in self.monthViews {
+                monthView.center.x -= self.view.frame.width
+            }
+        }, completion: { finished in
+            if finished {
+                self.updateMonthViews()
+            }
+        })
     }
     
+    
+    
+}
+
+
+extension AddViewController {
+   
+//MARK: - Update labeltext
+    
+    private func updateMonthLabelText() {
+        let comps = Calendar.current.dateComponents([.month, .year], from: deadlineCalendarDate)
+        
+        var monthString: String {
+            switch comps.month {
+            case 1: return "Tammikuu"
+            case 2: return "Helmikuu"
+            case 3: return "Maaliskuu"
+            case 4: return "Huhtikuu"
+            case 5: return "Toukokuu"    
+            case 6: return "Kesäkuu"
+            case 7: return "Heinäkuu"
+            case 8: return "Elokuu"
+            case 9: return "Syyskuu"
+            case 10: return "Lokakuu"
+            case 11: return "Marraskuu"
+            case 12: return "Joulukuu"
+            default: return "Unknown"
+            }
+        }
+        
+        let yearString = "\(comps.year!)"
+        monthStringLabel.text = "\(monthString) \(yearString)"
+    }
+    
+    
+//MARK: - Set Deadline selection view programatically
     
     private func setDeadlineView() {
         
@@ -65,7 +112,7 @@ class AddViewController: UIViewController {
         let deadlineView = UIView()
         deadlineView.backgroundColor = .clear
         view.addSubview(deadlineView)
-        deadlineView.frame = CGRect(x: 0, y: deadlineViewY, width: view.frame.width, height: 300)
+        deadlineView.frame = CGRect(x: 0, y: deadlineViewY, width: view.frame.width, height: 75)
         deadlineCalendarView = deadlineView
         
         
@@ -89,29 +136,80 @@ class AddViewController: UIViewController {
         let monthLabel = dlUI.createMonthLabel()
         monthLabel.frame = CGRect(x: buttonSize, y: 0, width: view.frame.width - buttonSize * 2, height: buttonSize)
         self.deadlineCalendarView.addSubview(monthLabel)
+        monthStringLabel = monthLabel
+        
         
         //Create weekday stack
         let stack = dlUI.createWeekdayStack()
         stack.frame = CGRect(x: 0, y: buttonSize, width: view.frame.width, height: stackHeight)
         self.deadlineCalendarView.addSubview(stack)
         
-        //create monthView
-        let components = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
-        guard let year = components.year, let month = components.month else { return }
-        
-        let dates = dlUI.createMonthStack(year: year, month: month)
-        let frames = dlUI.getFrames(days: dates, width: view.frame.width, heigth: deadlineView.frame.height - 75)
-        let dayLabels = dlUI.createDayLabels(days: dates)
-        
-        for i in 0..<dayLabels.count {
-            let label = dayLabels[i]
-            self.deadlineCalendarView.addSubview(label)
-            deadlineDayLabels.append(label)
-            label.frame = frames[i]
-        }
+        //create monthViews
+        updateMonthViews()
         
         
     }
     
+    private func updateMonthViews() {
+        for monthWiew in monthViews {
+            monthWiew.removeFromSuperview()
+        }
+        monthViews.removeAll()
+        let y = deadlineSwitchView.center.y + deadlineSwitchView.frame.height / 2 + view.safeAreaInsets.top
+        for i in -1...1 {
+            let date = Calendar.current.date(byAdding: .month, value: i, to: deadlineCalendarDate)!
+            createMonthView(yCord: y + 75, from: date, location: i)
+        }
+    }
     
+    private func createMonthView(yCord: CGFloat, from date: Date, location: Int) {
+        deadlineDayLabels.removeAll()
+        let monthView = UIView()
+        monthView.backgroundColor = .clear
+        view.addSubview(monthView)
+        monthView.frame = CGRect(x: 0, y: yCord, width: view.frame.width, height: 225)
+        
+        let viewWidth = view.frame.width
+        var centerX: CGFloat {
+            switch location {
+            case -1: return viewWidth / 2 - viewWidth
+            case 0: return viewWidth / 2
+            case 1: return viewWidth / 2 + viewWidth
+            default: return viewWidth / 2
+            }
+        }
+        monthView.center.x = centerX
+        
+        let monthDates = dlUI.getMonthDates(from: date)
+        let maxWeek = monthDates.max(by: { $0.week < $1.week })!.week
+        let numberOfWeeks = maxWeek + 1
+        
+        for i in 0..<monthDates.count {
+            let d = monthDates[i]
+            let label = UILabel()
+            label.text = d.dateString
+            label.textColor = .black
+            label.textAlignment = .center
+            label.font = UIFont(name: "optima", size: 12)
+            monthView.addSubview(label)
+            deadlineDayLabels.append(label)
+       
+            
+            let width = monthView.frame.width
+            let height = monthView.frame.height
+            let x = CGFloat(d.weekday) * (width / 7)
+            var y = CGFloat(d.week) * (height / CGFloat(numberOfWeeks))
+            let w = width / 7
+            let h = height / CGFloat(numberOfWeeks)
+            
+            label.frame = CGRect(x: x, y: y, width: w, height: h)
+            
+            let comp = Calendar.current.dateComponents([.month, .weekday], from: d.date)
+            if comp.month == 12 {
+                //print("Date: \(d.dateString): x: \(x), y: \(y), weeknumber: \()")
+            }
+            
+        }
+        monthViews.append(monthView)
+    }
 }
