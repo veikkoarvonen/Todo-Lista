@@ -26,7 +26,8 @@
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="JAG-X7-prS">
                                 <rect key="frame" x="0.0" y="138" width="393" height="680"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <color key="backgroundColor" name="brandColor"/>
+                                <color key="sectionIndexBackgroundColor" name="brandColor"/>
                             </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -69,8 +70,20 @@
                     <view key="view" contentMode="scaleToFill" id="dGb-TK-8VP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5wa-Eb-7Nx">
+                                <rect key="frame" x="0.0" y="103" width="393" height="715"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="3G8-kJ-5Xi"/>
                         <color key="backgroundColor" name="brandColor"/>
+                        <constraints>
+                            <constraint firstItem="3G8-kJ-5Xi" firstAttribute="bottom" secondItem="5wa-Eb-7Nx" secondAttribute="bottom" id="X8j-im-Yfs"/>
+                            <constraint firstItem="3G8-kJ-5Xi" firstAttribute="trailing" secondItem="5wa-Eb-7Nx" secondAttribute="trailing" id="ekI-sA-Vlo"/>
+                            <constraint firstItem="5wa-Eb-7Nx" firstAttribute="leading" secondItem="3G8-kJ-5Xi" secondAttribute="leading" id="fOt-3T-PMS"/>
+                            <constraint firstItem="5wa-Eb-7Nx" firstAttribute="top" secondItem="3G8-kJ-5Xi" secondAttribute="top" id="z1O-gZ-5qJ"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="4xj-zT-aEU"/>
                 </viewController>
