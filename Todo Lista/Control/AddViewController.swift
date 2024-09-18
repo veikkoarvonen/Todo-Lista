@@ -21,7 +21,7 @@ class AddViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        dlUI.getMonthDates(from: deadlineCalendarDate)
     }
     
     override func viewDidLayoutSubviews() {
