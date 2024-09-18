@@ -8,6 +8,11 @@
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="Lato-Bold.ttf">
+            <string>Lato-Bold</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Main View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -63,17 +68,70 @@
             </objects>
             <point key="canvasLocation" x="994.6564885496183" y="-27.464788732394368"/>
         </scene>
-        <!--View Controller-->
+        <!--Add View Controller-->
         <scene sceneID="hQr-02-fpU">
             <objects>
-                <viewController id="zaz-tT-hhb" sceneMemberID="viewController">
+                <viewController id="zaz-tT-hhb" customClass="AddViewController" customModule="Todo_Lista" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="dGb-TK-8VP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5wa-Eb-7Nx">
                                 <rect key="frame" x="0.0" y="103" width="393" height="715"/>
+                                <subviews>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Nimi:" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="OD7-bg-gaq">
+                                        <rect key="frame" x="25" y="20" width="343" height="40"/>
+                                        <fontDescription key="fontDescription" name="Lato-Bold" family="Lato" pointSize="25"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="top" borderStyle="roundedRect" placeholder="kuvaus..." minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="oVl-gk-neq">
+                                        <rect key="frame" x="25" y="70" width="343" height="100"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="100" id="GoU-vy-tGA"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RZ0-gE-rJ6">
+                                        <rect key="frame" x="0.0" y="190" width="393" height="50"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Aseta deadline:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HHy-Fa-58B">
+                                                <rect key="frame" x="20" y="10" width="299" height="30"/>
+                                                <fontDescription key="fontDescription" name="Lato-Bold" family="Lato" pointSize="25"/>
+                                                <color key="textColor" name="brandColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="2kc-WU-nwq">
+                                                <rect key="frame" x="324" y="9.6666666666666856" width="51" height="31"/>
+                                                <color key="onTintColor" name="brandColor"/>
+                                                <connections>
+                                                    <action selector="deadlineSwitchPressed:" destination="zaz-tT-hhb" eventType="valueChanged" id="IXj-zR-dCx"/>
+                                                </connections>
+                                            </switch>
+                                        </subviews>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="7TJ-OL-gOk"/>
+                                            <constraint firstItem="2kc-WU-nwq" firstAttribute="leading" secondItem="HHy-Fa-58B" secondAttribute="trailing" constant="5" id="88h-NM-nFO"/>
+                                            <constraint firstItem="HHy-Fa-58B" firstAttribute="leading" secondItem="RZ0-gE-rJ6" secondAttribute="leading" constant="20" id="9ok-n7-Ri4"/>
+                                            <constraint firstItem="2kc-WU-nwq" firstAttribute="centerY" secondItem="RZ0-gE-rJ6" secondAttribute="centerY" id="fIk-LH-4sB"/>
+                                            <constraint firstItem="HHy-Fa-58B" firstAttribute="centerY" secondItem="RZ0-gE-rJ6" secondAttribute="centerY" id="r3u-R9-c0S"/>
+                                            <constraint firstAttribute="trailing" secondItem="2kc-WU-nwq" secondAttribute="trailing" constant="20" id="sK7-tS-8qW"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="RZ0-gE-rJ6" secondAttribute="trailing" id="EKD-wO-VZb"/>
+                                    <constraint firstItem="RZ0-gE-rJ6" firstAttribute="leading" secondItem="5wa-Eb-7Nx" secondAttribute="leading" id="LQP-88-E6M"/>
+                                    <constraint firstItem="oVl-gk-neq" firstAttribute="leading" secondItem="5wa-Eb-7Nx" secondAttribute="leading" constant="25" id="U0s-F7-Rlp"/>
+                                    <constraint firstItem="OD7-bg-gaq" firstAttribute="leading" secondItem="5wa-Eb-7Nx" secondAttribute="leading" constant="25" id="Wq7-5r-6Nc"/>
+                                    <constraint firstItem="RZ0-gE-rJ6" firstAttribute="top" secondItem="oVl-gk-neq" secondAttribute="bottom" constant="20" id="YQa-wY-wEG"/>
+                                    <constraint firstItem="oVl-gk-neq" firstAttribute="top" secondItem="OD7-bg-gaq" secondAttribute="bottom" constant="10" id="aUT-zN-VQb"/>
+                                    <constraint firstAttribute="trailing" secondItem="OD7-bg-gaq" secondAttribute="trailing" constant="25" id="nVa-aC-2mi"/>
+                                    <constraint firstAttribute="trailing" secondItem="oVl-gk-neq" secondAttribute="trailing" constant="25" id="tEN-zb-wpH"/>
+                                    <constraint firstItem="OD7-bg-gaq" firstAttribute="top" secondItem="5wa-Eb-7Nx" secondAttribute="top" constant="20" id="xGd-HF-asl"/>
+                                </constraints>
                             </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3G8-kJ-5Xi"/>
@@ -86,6 +144,11 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="4xj-zT-aEU"/>
+                    <connections>
+                        <outlet property="deadlineSwitchView" destination="RZ0-gE-rJ6" id="13u-xK-Qxu"/>
+                        <outlet property="descTextField" destination="oVl-gk-neq" id="L4L-uy-vt4"/>
+                        <outlet property="nameTextField" destination="OD7-bg-gaq" id="8gH-Dw-mZY"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Kdi-Q0-Wuv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
