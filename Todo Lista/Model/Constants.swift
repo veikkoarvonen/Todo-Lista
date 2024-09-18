@@ -8,5 +8,11 @@
 import Foundation
 
 struct C {
-    static let brandColor = "brandColor"
+    struct Colors {
+        static let brandColor = "brandColor"
+    }
+    
+    struct Segues {
+        static let mainToAdd = "mainToAdd"
+    }
 }
