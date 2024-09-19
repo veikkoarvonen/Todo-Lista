@@ -11,16 +11,18 @@ class AddViewController: UIViewController {
     
     let dlUI = DeadlineUI()
     var deadlineCalendarDate = Date()
-    var deadlineCalendarView = UIView()
     var monthViews = [UIView]()
     var deadlineDayLabels = [UILabel]()
-    var monthStringLabel = UILabel()
+    var newDeadlineDayLabels = [UILabel]()
     var hasSetUI = false
     
     
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var descTextField: UITextField!
     @IBOutlet weak var deadlineSwitchView: UIView!
+    @IBOutlet weak var calendarView: UIView!
+    @IBOutlet weak var deadlineTimePicker: UIDatePicker!
+    @IBOutlet weak var monthTextLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,52 +30,117 @@ class AddViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         if !hasSetUI {
-            setDeadlineView()
+            setDeadlineCalendar(for: deadlineCalendarDate, location: 0)
             hasSetUI = true
         }
     }
     
+    @IBAction func leftArrowTapped(_ sender: UIButton) {
+        let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)
+        deadlineCalendarDate = newDate!
+        moveCalendarLeft()
+        updateMonthLabelText()
+        print(deadlineCalendarDate)
+    }
+    
+    @IBAction func rightArrowTapped(_ sender: UIButton) {
+        let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate)
+        deadlineCalendarDate = newDate!
+        moveCalendarRight()
+        updateMonthLabelText()
+        print(deadlineCalendarDate)
+    }
+    
+    
     @IBAction func deadlineSwitchPressed(_ sender: UISwitch) {
+        
     }
-    
-    @objc func leftArrowTapped() {
-        let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)!
-        deadlineCalendarDate = newDate
-        updateMonthLabelText()
-        print(deadlineCalendarDate)
-        UIView.animate(withDuration: 0.3, animations: {
-            for monthView in self.monthViews {
-                monthView.center.x += self.view.frame.width
-            }
-        }, completion: { finished in
-            if finished {
-                self.updateMonthViews()
-            }
-        })
-    }
-    
-    @objc func rightArrowTapped() {
-        let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate)!
-        deadlineCalendarDate = newDate
-        updateMonthLabelText()
-        print(deadlineCalendarDate)
-        UIView.animate(withDuration: 0.3, animations: {
-            for monthView in self.monthViews {
-                monthView.center.x -= self.view.frame.width
-            }
-        }, completion: { finished in
-            if finished {
-                self.updateMonthViews()
-            }
-        })
-    }
-    
     
     
 }
 
 
 extension AddViewController {
+    
+    private func setDeadlineCalendar(for date: Date, location: Int) {
+        
+        let days = dlUI.getMonthDates(from: date)
+        let maxWeek = days.max(by: { $0.week < $1.week })!.week
+        let numberOfWeeks = maxWeek + 1
+        
+        for i in 0..<days.count {
+            let d = days[i]
+            
+            let label = UILabel()
+            label.text = d.dateString
+            label.textColor = .black
+            label.textAlignment = .center
+            label.font = UIFont(name: "optima", size: 12)
+            calendarView.addSubview(label)
+            
+            if location == 0 {
+                deadlineDayLabels.append(label)
+            } else {
+                newDeadlineDayLabels.append(label)
+            }
+            
+            
+            let width = calendarView.frame.width
+            let height = calendarView.frame.height
+            let x = CGFloat(d.weekday) * (width / 7)
+            let y = CGFloat(d.week) * (height / CGFloat(numberOfWeeks))
+            let w = width / 7
+            let h = height / CGFloat(numberOfWeeks)
+            
+            label.frame = CGRect(x: x, y: y, width: w, height: h)
+            label.center.x += (view.frame.width * CGFloat(location))
+            
+        }
+        
+    }
+    
+    private func moveCalendarLeft() {
+        
+        setDeadlineCalendar(for: deadlineCalendarDate, location: -1)
+        UIView.animate(withDuration: 0.3, animations: {
+            for label in self.deadlineDayLabels {
+                label.center.x += self.view.frame.width
+            }
+            for label in self.newDeadlineDayLabels {
+                label.center.x += self.view.frame.width
+            }
+        }, completion: { finished in
+            if finished {
+                for label in self.deadlineDayLabels {
+                    label.removeFromSuperview()
+                }
+                self.deadlineDayLabels = self.newDeadlineDayLabels
+                self.newDeadlineDayLabels.removeAll()
+            }
+        })
+    }
+    
+    private func moveCalendarRight() {
+        
+        setDeadlineCalendar(for: deadlineCalendarDate, location: 1)
+        UIView.animate(withDuration: 0.3, animations: {
+            for label in self.deadlineDayLabels {
+                label.center.x -= self.view.frame.width
+            }
+            for label in self.newDeadlineDayLabels {
+                label.center.x -= self.view.frame.width
+            }
+        }, completion: { finished in
+            if finished {
+                for label in self.deadlineDayLabels {
+                    label.removeFromSuperview()
+                }
+                self.deadlineDayLabels = self.newDeadlineDayLabels
+                self.newDeadlineDayLabels.removeAll()
+            }
+        })
+    }
+    
    
 //MARK: - Update labeltext
     
@@ -99,50 +166,13 @@ extension AddViewController {
         }
         
         let yearString = "\(comps.year!)"
-        monthStringLabel.text = "\(monthString) \(yearString)"
+        monthTextLabel.text = "\(monthString) \(yearString)"
     }
     
     
 //MARK: - Set Deadline selection view programatically
     
     private func setDeadlineView() {
-        
-        let deadlineViewY = deadlineSwitchView.center.y + deadlineSwitchView.frame.height / 2 + view.safeAreaInsets.top
-        
-        let deadlineView = UIView()
-        deadlineView.backgroundColor = .clear
-        view.addSubview(deadlineView)
-        deadlineView.frame = CGRect(x: 0, y: deadlineViewY, width: view.frame.width, height: 75)
-        deadlineCalendarView = deadlineView
-        
-        
-        let buttonSize: CGFloat = 50
-        let stackHeight: CGFloat = 25
-        
-        //Create left arrow button
-        let leftButton = dlUI.createLeftButton()
-        leftButton.frame = CGRect(x: 0, y: 0, width: buttonSize, height: buttonSize)
-        leftButton.addTarget(self, action: #selector(leftArrowTapped), for: .touchUpInside)
-        self.deadlineCalendarView.addSubview(leftButton)
-        
-        //Create right button
-        let rightButton = dlUI.createRightButton()
-        let x = view.frame.width - buttonSize
-        rightButton.frame = CGRect(x: x, y: 0, width: buttonSize, height: buttonSize)
-        rightButton.addTarget(self, action: #selector(rightArrowTapped), for: .touchUpInside)
-        self.deadlineCalendarView.addSubview(rightButton)
-        
-        //Create month label
-        let monthLabel = dlUI.createMonthLabel()
-        monthLabel.frame = CGRect(x: buttonSize, y: 0, width: view.frame.width - buttonSize * 2, height: buttonSize)
-        self.deadlineCalendarView.addSubview(monthLabel)
-        monthStringLabel = monthLabel
-        
-        
-        //Create weekday stack
-        let stack = dlUI.createWeekdayStack()
-        stack.frame = CGRect(x: 0, y: buttonSize, width: view.frame.width, height: stackHeight)
-        self.deadlineCalendarView.addSubview(stack)
         
         //create monthViews
         updateMonthViews()
@@ -198,7 +228,7 @@ extension AddViewController {
             let width = monthView.frame.width
             let height = monthView.frame.height
             let x = CGFloat(d.weekday) * (width / 7)
-            var y = CGFloat(d.week) * (height / CGFloat(numberOfWeeks))
+            let y = CGFloat(d.week) * (height / CGFloat(numberOfWeeks))
             let w = width / 7
             let h = height / CGFloat(numberOfWeeks)
             

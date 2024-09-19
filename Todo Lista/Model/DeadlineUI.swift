@@ -9,52 +9,6 @@ import UIKit
 
 struct DeadlineUI {
     
-    func createLeftButton() -> UIButton {
-        let leftButton = UIButton(type: .system)
-        let leftArrowImage = UIImage(systemName: "arrow.left")
-        leftButton.setImage(leftArrowImage, for: .normal)
-        leftButton.tintColor = UIColor(named: C.Colors.brandColor)
-        return leftButton
-    }
-    
-    func createRightButton() -> UIButton {
-        let rightButton = UIButton(type: .system)
-        let rightArrowImage = UIImage(systemName: "arrow.right")
-        rightButton.setImage(rightArrowImage, for: .normal)
-        rightButton.tintColor = UIColor(named: C.Colors.brandColor)
-        return rightButton
-    }
-    
-    func createMonthLabel() -> UILabel {
-        let label = UILabel()
-        label.backgroundColor = .clear
-        label.text = "Syyskuu 2024"
-        label.textAlignment = .center
-        label.textColor = .black
-        label.font = UIFont(name: "Optima", size: 16)
-        return label
-    }
-    
-    func createWeekdayStack() -> UIStackView {
-        let weekdays = ["Ma","Ti","Ke","To","Pe","La","Su"]
-        
-        let stack = UIStackView()
-        
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually // This ensures that each subview gets equal width
-        stack.alignment = .center // Aligns all subviews in the center vertically
-        
-        // Loop through weekdays and create labels, then add them to the stack
-        for day in weekdays {
-            let label = UILabel()
-            label.text = day
-            label.textAlignment = .center
-            label.font = UIFont(name: "optima", size: 12)
-            stack.addArrangedSubview(label)
-        }
-        return stack
-    }
-    
     func getMonthDates(from date: Date) -> [MonthDay] {
         let cal = Calendar.current
         let comps = cal.dateComponents([.year, .month], from: date)
