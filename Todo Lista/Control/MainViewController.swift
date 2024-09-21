@@ -13,6 +13,8 @@ class MainViewController: UIViewController {
     
     var topLabels = [UILabel]()
     var tableViewData = 1
+    let coreData = CoreDataStack()
+    let tableData = TableViewData()
     
 //MARK: - IBoutlets & actions
     
@@ -28,6 +30,15 @@ class MainViewController: UIViewController {
         setTopLabels()
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         view.addGestureRecognizer(panGesture)
+        print(coreData.fetchTasks()?.count)
+        tableView.register(UINib(nibName: C.TableView.cellName, bundle: nil), forCellReuseIdentifier: C.TableView.cellID)
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = .none
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        tableView.reloadData()
     }
   
 //MARK: - Handle panGesture
@@ -107,3 +118,42 @@ class MainViewController: UIViewController {
     
 }
 
+extension MainViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let dataArray = tableData.getTaskArray()
+        
+        return dataArray.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: C.TableView.cellID, for: indexPath) as! TableViewCell
+        let dataArray = tableData.getTaskArray()
+        cell.nameLabel.text = dataArray[indexPath.row].name ?? "No name"
+        
+        if let desc = dataArray[indexPath.row].desc {
+            if desc == "" {
+                cell.descLabel.text = "Ei kuvausta"
+            } else {
+                cell.descLabel.text = desc
+            }
+        } else {
+            cell.descLabel.text = "Ei kuvausta"
+        }
+        
+        if let dl = dataArray[indexPath.row].deadline {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd.MM.yy"
+            cell.deadlineLabel.text = formatter.string(from: dl)
+        } else {
+            cell.deadlineLabel.text = "Ei deadlinea"
+        }
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 130
+    }
+    
+    
+}

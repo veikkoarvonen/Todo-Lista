@@ -15,4 +15,9 @@ struct C {
     struct Segues {
         static let mainToAdd = "mainToAdd"
     }
+    
+    struct TableView {
+        static let cellID = "tableViewCell"
+        static let cellName = "TableViewCell"
+    }
 }

@@ -43,7 +43,7 @@ class AddViewController: UIViewController {
     }
     
     @IBAction func savePressed(_ sender: UIBarButtonItem) {
-        
+        createTask()
     }
     
     @IBAction func leftArrowTapped(_ sender: UIButton) {
@@ -102,11 +102,28 @@ class AddViewController: UIViewController {
     }
 
     func createTask() {
-        guard let name = nameTextField.text else {
+        guard nameTextField.text != nil, nameTextField.text != "" else {
+            print("Task must have a name")
             return
         }
+        let name = nameTextField.text!
         let desc = descTextField.text
         let isImportant = impSwitch.isOn
+        var deadline: Date? {
+            if let dateNumber = selectedDeadlineDate {
+                let comps = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
+                var dlcomps = DateComponents()
+                dlcomps.year = comps.year
+                dlcomps.month = comps.month
+                dlcomps.day = dateNumber + 1
+                let dl = Calendar.current.date(from: dlcomps)
+                return dl
+            } else {
+                return nil
+            }
+        }
+        let id = Int.random(in: 0...1000000000)
+        CoreDataStack.shared.createTask(name: name, desc: desc, deadline: deadline, id: id, isCompleted: false, isImportant: isImportant)
     }
     
     

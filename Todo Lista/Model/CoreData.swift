@@ -12,11 +12,11 @@ class CoreDataStack {
 
     static let shared = CoreDataStack()
     
-    private init() {}
+    init() {}
     
     // Persistent container setup
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "TaskDataModel") // Use the name of your Core Data model file
+        let container = NSPersistentContainer(name: "Todo_Lista") // Use the name of your Core Data model file
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
@@ -42,7 +42,7 @@ class CoreDataStack {
         }
     }
     
-    func createTask(name: String, desc: String, deadline: Date, id: Int32, isCompleted: Bool, isImportant: Bool) {
+    func createTask(name: String, desc: String?, deadline: Date?, id: Int, isCompleted: Bool, isImportant: Bool) {
         let context = context
         
         // Create a new task
@@ -50,7 +50,7 @@ class CoreDataStack {
         task.name = name
         task.desc = desc
         task.deadline = deadline
-        task.id = id
+        task.id = Int32(id)
         task.isCompleted = isCompleted
         task.isImportant = isImportant
         
