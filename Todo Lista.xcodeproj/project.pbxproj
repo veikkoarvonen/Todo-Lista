@@ -16,6 +16,7 @@
 		B6075D462C9AD86700676148 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B6075D442C9AD86700676148 /* LaunchScreen.storyboard */; };
 		B6075D512C9AD95300676148 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6075D502C9AD95300676148 /* Constants.swift */; };
 		B6075D532C9AD9B000676148 /* AddViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6075D522C9AD9B000676148 /* AddViewController.swift */; };
+		B62DE5A02C9F5D19002ED63E /* Lato-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B62DE59F2C9F5D19002ED63E /* Lato-Bold.ttf */; };
 		B64386212C9C4C760047BB29 /* CoreData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64386202C9C4C760047BB29 /* CoreData.swift */; };
 		B64386252C9F197E0047BB29 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64386232C9F197E0047BB29 /* TableViewCell.swift */; };
 		B64386262C9F197E0047BB29 /* TableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B64386242C9F197E0047BB29 /* TableViewCell.xib */; };
@@ -36,7 +37,7 @@
 		B6075D502C9AD95300676148 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		B6075D522C9AD9B000676148 /* AddViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddViewController.swift; sourceTree = "<group>"; };
 		B6075D542C9AF23500676148 /* Lato-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Regular.ttf"; sourceTree = "<group>"; };
-		B6075D552C9AF24200676148 /* Lato-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Bold.ttf"; sourceTree = "<group>"; };
+		B62DE59F2C9F5D19002ED63E /* Lato-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Bold.ttf"; sourceTree = "<group>"; };
 		B64386202C9C4C760047BB29 /* CoreData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreData.swift; sourceTree = "<group>"; };
 		B64386232C9F197E0047BB29 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
 		B64386242C9F197E0047BB29 /* TableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TableViewCell.xib; sourceTree = "<group>"; };
@@ -120,7 +121,7 @@
 		B6075D562C9AF29300676148 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				B6075D552C9AF24200676148 /* Lato-Bold.ttf */,
+				B62DE59F2C9F5D19002ED63E /* Lato-Bold.ttf */,
 				B6075D542C9AF23500676148 /* Lato-Regular.ttf */,
 			);
 			path = Fonts;
@@ -194,6 +195,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B6075D462C9AD86700676148 /* LaunchScreen.storyboard in Resources */,
+				B62DE5A02C9F5D19002ED63E /* Lato-Bold.ttf in Resources */,
 				B64386262C9F197E0047BB29 /* TableViewCell.xib in Resources */,
 				B6075D432C9AD86700676148 /* Assets.xcassets in Resources */,
 				B6075D3E2C9AD86600676148 /* Main.storyboard in Resources */,

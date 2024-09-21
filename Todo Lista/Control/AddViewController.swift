@@ -21,7 +21,7 @@ class AddViewController: UIViewController {
     
     var hasSetUI = false
     var taskID: Int?
-    var selectedDeadlineDate: Int?
+    var selectedDeadlineDate: Date?
     
     
     @IBOutlet weak var nameTextField: UITextField!
@@ -29,15 +29,19 @@ class AddViewController: UIViewController {
     @IBOutlet weak var deadlineSwitchView: UIView!
     @IBOutlet weak var calendarView: UIView!
     @IBOutlet weak var monthTextLabel: UILabel!
+    @IBOutlet weak var addDeadlineSwitch: UISwitch!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
     }
     
     override func viewDidLayoutSubviews() {
         if !hasSetUI {
-            setDeadlineCalendar(for: deadlineCalendarDate, location: 0)
             finishUI()
+            displayTaskToEdit()
+            setDeadlineCalendar(for: deadlineCalendarDate, location: 0)
+            updateMonthLabelText()
             hasSetUI = true
         }
     }
@@ -45,6 +49,8 @@ class AddViewController: UIViewController {
     @IBAction func savePressed(_ sender: UIBarButtonItem) {
         createTask()
     }
+  
+//MARK: - Move deadline calendar
     
     @IBAction func leftArrowTapped(_ sender: UIButton) {
         let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)
@@ -62,6 +68,7 @@ class AddViewController: UIViewController {
         print(deadlineCalendarDate)
     }
     
+//MARK: - Buttons and switches
     
     @IBAction func deadlineSwitchPressed(_ sender: UISwitch) {
         var translationY: CGFloat {
@@ -93,14 +100,25 @@ class AddViewController: UIViewController {
         if let tappedLabel = sender.view as? UILabel {
             tappedLabel.backgroundColor = UIColor(named: C.Colors.brandColor)
             tappedLabel.textColor = .white
-            selectedDeadlineDate = tappedLabel.tag
+            let comps = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
+            var dlcomps = DateComponents()
+            dlcomps.year = comps.year
+            dlcomps.month = comps.month
+            dlcomps.day = tappedLabel.tag
+            let dl = Calendar.current.date(from: dlcomps)
+            selectedDeadlineDate = dl
         }
     }
     
     @objc func deleteButtonTapped() {
-        print("Poista tehtävä button tapped")
+        if let id = taskID {
+            CoreDataStack.shared.deleteTask(taskID: Int32(id))
+        }
+        navigationController?.popViewController(animated: true)
     }
 
+//MARK: - Create / Update task
+    
     func createTask() {
         guard nameTextField.text != nil, nameTextField.text != "" else {
             print("Task must have a name")
@@ -109,21 +127,17 @@ class AddViewController: UIViewController {
         let name = nameTextField.text!
         let desc = descTextField.text
         let isImportant = impSwitch.isOn
-        var deadline: Date? {
-            if let dateNumber = selectedDeadlineDate {
-                let comps = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
-                var dlcomps = DateComponents()
-                dlcomps.year = comps.year
-                dlcomps.month = comps.month
-                dlcomps.day = dateNumber + 1
-                let dl = Calendar.current.date(from: dlcomps)
-                return dl
-            } else {
-                return nil
-            }
-        }
+        let deadline = selectedDeadlineDate
         let id = Int.random(in: 0...1000000000)
-        CoreDataStack.shared.createTask(name: name, desc: desc, deadline: deadline, id: id, isCompleted: false, isImportant: isImportant)
+        
+        if let id = taskID {
+            if let taskToUpdate = CoreDataStack.shared.fetchTaskByID(taskID: Int32(id)) {
+                CoreDataStack.shared.updateTask(task: taskToUpdate, name: name, desc: desc, deadline: deadline, isImportant: isImportant)
+            }
+        } else {
+            CoreDataStack.shared.createTask(name: name, desc: desc, deadline: deadline, id: id, isCompleted: false, isImportant: isImportant)
+        }
+        navigationController?.popViewController(animated: true)
     }
     
     
@@ -171,6 +185,18 @@ extension AddViewController {
             label.isUserInteractionEnabled = true
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(labelTapped(_:)))
             label.addGestureRecognizer(tapGesture)
+            
+            if let currentDL = selectedDeadlineDate {
+                let comps = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
+                
+                let currentComps = Calendar.current.dateComponents([.year, .month, .day], from: currentDL)
+                
+                if comps.year == currentComps.year && comps.month == currentComps.month && label.tag == currentComps.day {
+                    label.backgroundColor = UIColor(named: C.Colors.brandColor)
+                    label.textColor = .white
+                }
+                
+            }
             
         }
         
@@ -248,9 +274,11 @@ extension AddViewController {
         monthTextLabel.text = "\(monthString) \(yearString)"
     }
     
+    //MARK: - Finish UI programatically
+    
     private func finishUI() {
         
-        let y = view.safeAreaInsets.top + calendarView.center.y - calendarView.frame.height / 2 - 60
+        var y = view.safeAreaInsets.top + calendarView.center.y - calendarView.frame.height / 2 - 60
         
         let lowerView = UIView()
         lowerView.backgroundColor = .white
@@ -260,7 +288,9 @@ extension AddViewController {
         
         let label = UILabel()
         label.text = "Merkitse tärkeäksi"
-        label.font = UIFont(name: "Helvetica", size: 22)
+        label.font = UIFont(name: "Lato-Bold", size: 25)
+        
+        
 
         
         label.textColor = UIColor(named: C.Colors.brandColor)
@@ -271,6 +301,7 @@ extension AddViewController {
         iSwitch.onTintColor = UIColor(named: C.Colors.brandColor)
         lowerView.addSubview(iSwitch)
         iSwitch.frame = CGRect(x: view.frame.width - 70, y: 10, width: 70, height: 40)
+        iSwitch.center.x = addDeadlineSwitch.center.x
         iSwitch.addTarget(self, action: #selector(impSwitchToggled(_:)), for: .valueChanged)
         impSwitch = iSwitch
         
@@ -283,7 +314,29 @@ extension AddViewController {
         button.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         deleteButton = button
         
+        //Update UI based on task to edit
         
+        
+        
+    }
+    
+    private func displayTaskToEdit() {
+        if let id = taskID {
+            if let taskToEdit = CoreDataStack.shared.fetchTaskByID(taskID: Int32(id)) {
+                nameTextField.text = taskToEdit.name
+                descTextField.text = taskToEdit.desc
+                impSwitch.isOn = taskToEdit.isImportant
+                if let dl = taskToEdit.deadline {
+                    deadlineCalendarDate = dl
+                    selectedDeadlineDate = dl
+                    addDeadlineSwitch.isOn = true
+                    lowView.center.y += 270
+                }
+            }
+        } else {
+            deleteButton.isHidden = true
+            deleteButton.isUserInteractionEnabled = false
+        }
     }
     
 }

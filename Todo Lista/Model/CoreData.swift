@@ -71,13 +71,12 @@ class CoreDataStack {
         }
     }
     
-    func updateTask(task: Task, name: String, desc: String, deadline: Date, isCompleted: Bool, isImportant: Bool) {
+    func updateTask(task: Task, name: String, desc: String?, deadline: Date?, isImportant: Bool) {
         let context = context
         
         task.name = name
         task.desc = desc
         task.deadline = deadline
-        task.isCompleted = isCompleted
         task.isImportant = isImportant
         
         saveContext()
@@ -101,6 +100,13 @@ class CoreDataStack {
         }
     }
 
+    func deleteTask(taskID: Int32) {
+        if let taskToDelete = fetchTaskByID(taskID: taskID) {
+            let context = context
+            context.delete(taskToDelete)
+            saveContext()
+        }
+    }
 
 
 

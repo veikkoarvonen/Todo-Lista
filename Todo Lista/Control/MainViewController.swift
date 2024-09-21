@@ -15,6 +15,7 @@ class MainViewController: UIViewController {
     var tableViewData = 1
     let coreData = CoreDataStack()
     let tableData = TableViewData()
+    var taskID: Int?
     
 //MARK: - IBoutlets & actions
     
@@ -28,9 +29,10 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setTopLabels()
+        
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         view.addGestureRecognizer(panGesture)
-        print(coreData.fetchTasks()?.count)
+        
         tableView.register(UINib(nibName: C.TableView.cellName, bundle: nil), forCellReuseIdentifier: C.TableView.cellID)
         tableView.dataSource = self
         tableView.delegate = self
@@ -40,6 +42,15 @@ class MainViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         tableView.reloadData()
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == C.Segues.mainToAdd {
+            let destinationVC = segue.destination as! AddViewController
+            destinationVC.taskID = taskID
+            taskID = nil
+        }
+    }
+
   
 //MARK: - Handle panGesture
     
@@ -86,7 +97,11 @@ class MainViewController: UIViewController {
                 for label in self.topLabels {
                     label.center.x += finalTranslationX
                 }
-            })
+            }) { _ in
+                // Reload table view data after the animation completes
+                self.tableView.reloadData()
+            }
+
         default:
             break
         }
@@ -118,41 +133,96 @@ class MainViewController: UIViewController {
     
 }
 
+//MARK: - Table view methods
+
 extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let dataArray = tableData.getTaskArray()
+        var tableDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
+            }
+        }
         
-        return dataArray.count
+        return tableDataArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: C.TableView.cellID, for: indexPath) as! TableViewCell
-        let dataArray = tableData.getTaskArray()
-        cell.nameLabel.text = dataArray[indexPath.row].name ?? "No name"
-        
-        if let desc = dataArray[indexPath.row].desc {
-            if desc == "" {
-                cell.descLabel.text = "Ei kuvausta"
-            } else {
-                cell.descLabel.text = desc
+        var tableDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
             }
-        } else {
-            cell.descLabel.text = "Ei kuvausta"
         }
         
-        if let dl = dataArray[indexPath.row].deadline {
+        let item = tableDataArray[indexPath.row]
+        var nameString = item.name!
+        if item.isImportant && tableViewData != 0 {
+            nameString = "\(nameString)❗️"
+        }
+        cell.nameLabel.text = nameString
+        
+        if let desc = item.desc {
+            cell.descLabel.text = desc
+        }
+        
+        if let dl = item.deadline {
             let formatter = DateFormatter()
             formatter.dateFormat = "dd.MM.yy"
-            cell.deadlineLabel.text = formatter.string(from: dl)
+            cell.deadlineLabel.text = "Deadline: \(formatter.string(from: dl))"
+            
+            if tableViewData == 2 {
+                let comps = Calendar.current.dateComponents([.day], from: Date(), to: dl)
+                if let difference = comps.day {
+                    cell.timeLabel.text = "Aikaa \(difference) pv"
+                }
+            } else {
+                cell.timeLabel.text = ""
+            }
         } else {
             cell.deadlineLabel.text = "Ei deadlinea"
+            cell.timeLabel.text = ""
         }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 130
+        var tableDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
+            }
+        }
+        
+        let item = tableDataArray[indexPath.row]
+        if item.desc != nil && item.desc != "" {
+            return 130
+        } else {
+            return 100
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        var tableDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
+            }
+        }
+        
+        let item = tableDataArray[indexPath.row]
+        taskID = Int(item.id)
+        performSegue(withIdentifier: C.Segues.mainToAdd, sender: self)
     }
     
     
