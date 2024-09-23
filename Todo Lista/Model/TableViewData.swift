@@ -43,10 +43,10 @@ struct TableViewData {
             print("Error fetching tasks for deadlines array")
             return []
         }
-        
-        // Filter tasks that have a non-nil deadline
-        var deadlines: [Task] = tasks.filter { $0.deadline != nil }
-        
+
+        // Filter tasks that have a non-nil deadline and are not completed
+        var deadlines: [Task] = tasks.filter { $0.deadline != nil && !$0.isCompleted }
+
         // Sort the tasks by their deadline property from earliest to latest
         deadlines.sort { (task1, task2) -> Bool in
             guard let deadline1 = task1.deadline, let deadline2 = task2.deadline else {
@@ -54,9 +54,10 @@ struct TableViewData {
             }
             return deadline1 < deadline2
         }
-        
+
         return deadlines
     }
+
 
     
 }

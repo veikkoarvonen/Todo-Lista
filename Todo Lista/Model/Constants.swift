@@ -21,3 +21,7 @@ struct C {
         static let cellName = "TableViewCell"
     }
 }
+
+protocol ReloadDelegate: AnyObject {
+    func reloadData()
+}

@@ -22,6 +22,7 @@ class AddViewController: UIViewController {
     var hasSetUI = false
     var taskID: Int?
     var selectedDeadlineDate: Date?
+    var delegate: ReloadDelegate?
     
     
     @IBOutlet weak var nameTextField: UITextField!
@@ -47,7 +48,7 @@ class AddViewController: UIViewController {
     }
     
     @IBAction func savePressed(_ sender: UIBarButtonItem) {
-        createTask()
+        saveTask()
     }
   
 //MARK: - Move deadline calendar
@@ -114,12 +115,13 @@ class AddViewController: UIViewController {
         if let id = taskID {
             CoreDataStack.shared.deleteTask(taskID: Int32(id))
         }
+        delegate?.reloadData()
         navigationController?.popViewController(animated: true)
     }
 
 //MARK: - Create / Update task
     
-    func createTask() {
+    func saveTask() {
         guard nameTextField.text != nil, nameTextField.text != "" else {
             print("Task must have a name")
             return
@@ -131,12 +133,12 @@ class AddViewController: UIViewController {
         let id = Int.random(in: 0...1000000000)
         
         if let id = taskID {
-            if let taskToUpdate = CoreDataStack.shared.fetchTaskByID(taskID: Int32(id)) {
-                CoreDataStack.shared.updateTask(task: taskToUpdate, name: name, desc: desc, deadline: deadline, isImportant: isImportant)
-            }
+            CoreDataStack.shared.updateTask(id: Int32(id), name: name, desc: desc, deadline: deadline, isImportant: isImportant)
         } else {
             CoreDataStack.shared.createTask(name: name, desc: desc, deadline: deadline, id: id, isCompleted: false, isImportant: isImportant)
         }
+        
+        delegate?.reloadData()
         navigationController?.popViewController(animated: true)
     }
     
@@ -278,7 +280,7 @@ extension AddViewController {
     
     private func finishUI() {
         
-        var y = view.safeAreaInsets.top + calendarView.center.y - calendarView.frame.height / 2 - 60
+        let y = view.safeAreaInsets.top + calendarView.center.y - calendarView.frame.height / 2 - 60
         
         let lowerView = UIView()
         lowerView.backgroundColor = .white

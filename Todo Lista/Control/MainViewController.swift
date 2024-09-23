@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MainViewController: UIViewController {
+class MainViewController: UIViewController, ReloadDelegate {
 
 //MARK: - Variables
     
@@ -39,14 +39,11 @@ class MainViewController: UIViewController {
         tableView.separatorStyle = .none
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        tableView.reloadData()
-    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == C.Segues.mainToAdd {
             let destinationVC = segue.destination as! AddViewController
             destinationVC.taskID = taskID
+            destinationVC.delegate = self
             taskID = nil
         }
     }
@@ -89,7 +86,7 @@ class MainViewController: UIViewController {
             }
             
            //Determine final point for center label based on tableView's data
-            var finalCenterXforMiddleLabel = centerXValues[tableViewData]
+            let finalCenterXforMiddleLabel = centerXValues[tableViewData]
             
             //Calculate final translation and move labels
             let finalTranslationX = finalCenterXforMiddleLabel - c
@@ -105,6 +102,10 @@ class MainViewController: UIViewController {
         default:
             break
         }
+    }
+    
+    func reloadData() {
+        tableView.reloadData()
     }
     
 //MARK: - Set UI
@@ -187,6 +188,17 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
         } else {
             cell.deadlineLabel.text = "Ei deadlinea"
             cell.timeLabel.text = ""
+        }
+        
+        cell.taskID = item.id
+        cell.delegate = self
+        
+        if item.isCompleted {
+            cell.backView.alpha = 0.5
+            cell.completedButton.tintColor = UIColor(named: C.Colors.brandColor)
+        } else {
+            cell.backView.alpha = 1
+            cell.completedButton.tintColor = .systemGray3
         }
         
         return cell

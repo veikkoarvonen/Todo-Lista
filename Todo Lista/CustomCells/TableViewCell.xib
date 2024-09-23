@@ -34,6 +34,9 @@
                                         <buttonConfiguration key="configuration" style="plain" image="checkmark.circle.fill" catalog="system">
                                             <color key="baseForegroundColor" name="brandColor"/>
                                         </buttonConfiguration>
+                                        <connections>
+                                            <action selector="completedButtonPressed:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="lx6-2j-bTb"/>
+                                        </connections>
                                     </button>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -103,6 +106,7 @@
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <connections>
                 <outlet property="backView" destination="SbF-eM-zm2" id="CkT-EX-OGa"/>
+                <outlet property="completedButton" destination="pyN-hV-AOF" id="yI5-eY-YVM"/>
                 <outlet property="deadlineLabel" destination="0g9-B2-SbV" id="SVg-Dq-lUc"/>
                 <outlet property="descLabel" destination="v5D-FY-Eeh" id="Rhe-Wa-iJS"/>
                 <outlet property="nameLabel" destination="jOH-wg-QfO" id="Xue-70-b0M"/>
