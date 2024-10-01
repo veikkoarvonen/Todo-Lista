@@ -13,6 +13,7 @@ class MainViewController: UIViewController, ReloadDelegate {
     
     var topLabels = [UILabel]()
     var tableViewData = 1
+    var tableViewDataArray = [Task]()
     let coreData = CoreDataStack()
     let tableData = TableViewData()
     var taskID: Int?
@@ -37,6 +38,9 @@ class MainViewController: UIViewController, ReloadDelegate {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.separatorStyle = .none
+        DispatchQueue.main.async {
+            self.initializeTableViewCells()
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -67,6 +71,7 @@ class MainViewController: UIViewController, ReloadDelegate {
             }
             gesture.setTranslation(CGPoint.zero, in: self.view)
         case .ended:
+            var oldDataIndex = tableViewData
             let velocity = gesture.velocity(in: self.view)
             let c = topLabels[1].center.x
             
@@ -94,9 +99,12 @@ class MainViewController: UIViewController, ReloadDelegate {
                 for label in self.topLabels {
                     label.center.x += finalTranslationX
                 }
-            }) { _ in
-                // Reload table view data after the animation completes
-                self.tableView.reloadData()
+            }) { [self] _ in
+                if oldDataIndex < tableViewData {
+                    refreshTableView(forDataInt: tableViewData, movedRight: true)
+                } else if oldDataIndex > tableViewData {
+                    refreshTableView(forDataInt: tableViewData, movedRight: false)
+                }
             }
 
         default:
@@ -107,6 +115,69 @@ class MainViewController: UIViewController, ReloadDelegate {
     func reloadData() {
         tableView.reloadData()
     }
+    
+//MARK: - TableView animations and data updates
+    
+    func initializeTableViewCells() {
+        let dataArray = tableData.getTaskArray()
+        tableViewDataArray = dataArray
+        
+        var iPaths: [IndexPath] = []
+        for i in 0..<dataArray.count {
+            iPaths.append(IndexPath(row: i, section: 0))
+        }
+        
+        tableView.beginUpdates()
+        tableView.insertRows(at: iPaths, with: .left)
+        tableView.endUpdates()
+        
+    }
+    
+    func refreshTableView(forDataInt dataInt: Int, movedRight: Bool) {
+        var iPathsToRemove: [IndexPath] = []
+        for i in 0..<tableViewDataArray.count {
+            iPathsToRemove.append(IndexPath(row: i, section: 0))
+        }
+        
+        tableViewDataArray = []
+        
+        tableView.beginUpdates()
+        if movedRight {
+            tableView.deleteRows(at: iPathsToRemove, with: .left)
+        } else {
+            tableView.deleteRows(at: iPathsToRemove, with: .right)
+        }
+        tableView.endUpdates()
+        
+        var newDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
+            }
+        }
+        
+        var iPathsToAdd: [IndexPath] = []
+        for i in 0..<newDataArray.count {
+            iPathsToAdd.append(IndexPath(row: i, section: 0))
+        }
+        
+        tableViewDataArray = newDataArray
+        
+        tableView.beginUpdates()
+        if movedRight {
+            tableView.insertRows(at: iPathsToAdd, with: .right)
+        } else {
+            tableView.insertRows(at: iPathsToAdd, with: .left)
+        }
+        tableView.endUpdates()
+        
+        print(tableViewDataArray.count)
+        
+    }
+    
+    
     
 //MARK: - Set UI
     
@@ -138,30 +209,14 @@ class MainViewController: UIViewController, ReloadDelegate {
 
 extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        var tableDataArray: [Task] {
-            switch tableViewData {
-            case 0: return tableData.getImportantArray()
-            case 1: return tableData.getTaskArray()
-            case 2: return tableData.getDeadlines()
-            default: return tableData.getTaskArray()
-            }
-        }
         
-        return tableDataArray.count
+        return tableViewDataArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: C.TableView.cellID, for: indexPath) as! TableViewCell
-        var tableDataArray: [Task] {
-            switch tableViewData {
-            case 0: return tableData.getImportantArray()
-            case 1: return tableData.getTaskArray()
-            case 2: return tableData.getDeadlines()
-            default: return tableData.getTaskArray()
-            }
-        }
         
-        let item = tableDataArray[indexPath.row]
+        let item = tableViewDataArray[indexPath.row]
         var nameString = item.name!
         if item.isImportant && tableViewData != 0 {
             nameString = "\(nameString)❗️"
@@ -205,16 +260,8 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var tableDataArray: [Task] {
-            switch tableViewData {
-            case 0: return tableData.getImportantArray()
-            case 1: return tableData.getTaskArray()
-            case 2: return tableData.getDeadlines()
-            default: return tableData.getTaskArray()
-            }
-        }
         
-        let item = tableDataArray[indexPath.row]
+        let item = tableViewDataArray[indexPath.row]
         if item.desc != nil && item.desc != "" {
             return 130
         } else {
@@ -223,16 +270,8 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        var tableDataArray: [Task] {
-            switch tableViewData {
-            case 0: return tableData.getImportantArray()
-            case 1: return tableData.getTaskArray()
-            case 2: return tableData.getDeadlines()
-            default: return tableData.getTaskArray()
-            }
-        }
         
-        let item = tableDataArray[indexPath.row]
+        let item = tableViewDataArray[indexPath.row]
         taskID = Int(item.id)
         performSegue(withIdentifier: C.Segues.mainToAdd, sender: self)
     }

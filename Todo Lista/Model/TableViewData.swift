@@ -55,7 +55,6 @@ struct TableViewData {
             }
             return deadline1 < deadline2
         }
-
         return deadlines
     }
     
