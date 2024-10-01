@@ -10,9 +10,13 @@ import Foundation
 struct TableViewData {
     
     func getTaskArray() -> [Task] {
-        guard let tasks = CoreDataStack.shared.fetchTasks() else {
+        guard var tasks = CoreDataStack.shared.fetchTasks() else {
             print("Error fetching tasks for task array")
             return []
+        }
+        
+        tasks.sort { (task1, task2) -> Bool in
+            return !task1.isCompleted && task2.isCompleted
         }
         
         return tasks
@@ -24,18 +28,15 @@ struct TableViewData {
             return []
         }
         
-        var importantTasks: [Task] {
-            var impTasks: [Task] = []
-            for task in tasks {
-                if task.isImportant {
-                    impTasks.append(task)
-                }
-            }
-            return impTasks
+        var importantTasks: [Task] = tasks.filter { $0.isImportant }
+        
+        importantTasks.sort { (task1, task2) -> Bool in
+            return !task1.isCompleted && task2.isCompleted
         }
         
         return importantTasks
     }
+
     
     func getDeadlines() -> [Task] {
         // Fetch tasks from Core Data
@@ -56,6 +57,23 @@ struct TableViewData {
         }
 
         return deadlines
+    }
+    
+    
+    func getIndexPaths(oldArray: [Task], newArray: [Task]) -> [Int] {
+        
+        var destinationRows: [Int] = []
+        
+        for task in oldArray {
+            let id = task.id
+            for i in 0..<newArray.count {
+                if newArray[i].id == id {
+                    destinationRows.append(i)
+                }
+            }
+        }
+        
+        return destinationRows
     }
 
 
