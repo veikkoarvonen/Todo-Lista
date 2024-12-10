@@ -47,7 +47,6 @@ class MainViewController: UIViewController, ReloadDelegate {
         if segue.identifier == C.Segues.mainToAdd {
             let destinationVC = segue.destination as! AddViewController
             destinationVC.taskID = taskID
-            destinationVC.delegate = self
             taskID = nil
         }
     }

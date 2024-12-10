@@ -14,7 +14,6 @@ class AddViewController: UIViewController {
     
     var deadlineCalendarDate = Date()
     var deadlineDayLabels = [UILabel]()
-    var newDeadlineDayLabels = [UILabel]()
     var lowView = UIView()
     var impSwitch = UISwitch()
     var deleteButton = UIButton()
@@ -22,7 +21,6 @@ class AddViewController: UIViewController {
     var hasSetUI = false
     var taskID: Int?
     var selectedDeadlineDate: Date?
-    var delegate: ReloadDelegate?
     
     
     @IBOutlet weak var nameTextField: UITextField!
@@ -41,7 +39,7 @@ class AddViewController: UIViewController {
         if !hasSetUI {
             finishUI()
             displayTaskToEdit()
-            setDeadlineCalendar(for: deadlineCalendarDate, location: 0)
+            setDeadlineCalendar(for: deadlineCalendarDate)
             updateMonthLabelText()
             hasSetUI = true
         }
@@ -56,17 +54,15 @@ class AddViewController: UIViewController {
     @IBAction func leftArrowTapped(_ sender: UIButton) {
         let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)
         deadlineCalendarDate = newDate!
-        moveCalendarLeft()
+        setDeadlineCalendar(for: deadlineCalendarDate)
         updateMonthLabelText()
-        print(deadlineCalendarDate)
     }
     
     @IBAction func rightArrowTapped(_ sender: UIButton) {
         let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate)
         deadlineCalendarDate = newDate!
-        moveCalendarRight()
+        setDeadlineCalendar(for: deadlineCalendarDate)
         updateMonthLabelText()
-        print(deadlineCalendarDate)
     }
     
 //MARK: - Buttons and switches
@@ -115,7 +111,6 @@ class AddViewController: UIViewController {
         if let id = taskID {
             CoreDataStack.shared.deleteTask(taskID: Int32(id))
         }
-        delegate?.reloadData()
         navigationController?.popViewController(animated: true)
     }
 
@@ -138,7 +133,6 @@ class AddViewController: UIViewController {
             CoreDataStack.shared.createTask(name: name, desc: desc, deadline: deadline, id: id, isCompleted: false, isImportant: isImportant)
         }
         
-        delegate?.reloadData()
         navigationController?.popViewController(animated: true)
     }
     
@@ -150,54 +144,45 @@ extension AddViewController {
     
 //MARK: - Set Deadlinecalendar
     
-    private func setDeadlineCalendar(for date: Date, location: Int) {
+    private func setDeadlineCalendar(for date: Date) {
         
-        let days = dlUI.getMonthDates(from: date)
-        let maxWeek = days.max(by: { $0.week < $1.week })!.week
-        let numberOfWeeks = maxWeek + 1
+        calendarView.backgroundColor = .cyan
         
-        for i in 0..<days.count {
-            let d = days[i]
-            
+        for label in deadlineDayLabels {
+            label.removeFromSuperview()
+        }
+        deadlineDayLabels = []
+        
+        let range = dlUI.getMonthDateArray(from: date)
+        let startingWeekdayIndex = dlUI.getWeekdayStartingIndex(from: date)
+        let numberOfWeeks = dlUI.getNumberOfWeeksInMonth(dayRange: range, startingDayIndex: startingWeekdayIndex)
+        
+        var xIndex = startingWeekdayIndex
+        var yIndex = 0
+        
+        for i in range {
             let label = UILabel()
-            label.text = d.dateString
-            label.textColor = .black
-            label.textAlignment = .center
-            label.font = UIFont(name: "optima", size: 12)
+            label.text = "\(i)."
+            label .textAlignment = .center
+            label.font = UIFont(name: "optima", size: 12.0)
             calendarView.addSubview(label)
+            deadlineDayLabels.append(label)
             
-            if location == 0 {
-                deadlineDayLabels.append(label)
+            let width = view.frame.width / 7
+            let height = calendarView.frame.height / CGFloat(numberOfWeeks)
+            let x = width * CGFloat(xIndex)
+            let y = height * CGFloat(yIndex)
+            
+            label.frame = CGRect(x: x, y: y, width: width, height: height)
+            
+            //print("x: \(xIndex), y: \(yIndex)")
+            //print(view.frame.width)
+            
+            if xIndex == 6 {
+                xIndex = 0
+                yIndex += 1
             } else {
-                newDeadlineDayLabels.append(label)
-            }
-            
-            
-            let width = calendarView.frame.width
-            let height = calendarView.frame.height
-            let x = CGFloat(d.weekday) * (width / 7)
-            let y = CGFloat(d.week) * (height / CGFloat(numberOfWeeks))
-            let w = width / 7
-            let h = height / CGFloat(numberOfWeeks)
-            
-            label.frame = CGRect(x: x, y: y, width: w, height: h)
-            label.center.x += (view.frame.width * CGFloat(location))
-            
-            label.tag = Int(d.dateString) ?? 100
-            label.isUserInteractionEnabled = true
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(labelTapped(_:)))
-            label.addGestureRecognizer(tapGesture)
-            
-            if let currentDL = selectedDeadlineDate {
-                let comps = Calendar.current.dateComponents([.year, .month], from: deadlineCalendarDate)
-                
-                let currentComps = Calendar.current.dateComponents([.year, .month, .day], from: currentDL)
-                
-                if comps.year == currentComps.year && comps.month == currentComps.month && label.tag == currentComps.day {
-                    label.backgroundColor = UIColor(named: C.Colors.brandColor)
-                    label.textColor = .white
-                }
-                
+                xIndex += 1
             }
             
         }
@@ -208,44 +193,12 @@ extension AddViewController {
     
     private func moveCalendarLeft() {
         
-        setDeadlineCalendar(for: deadlineCalendarDate, location: -1)
-        UIView.animate(withDuration: 0.3, animations: {
-            for label in self.deadlineDayLabels {
-                label.center.x += self.view.frame.width
-            }
-            for label in self.newDeadlineDayLabels {
-                label.center.x += self.view.frame.width
-            }
-        }, completion: { finished in
-            if finished {
-                for label in self.deadlineDayLabels {
-                    label.removeFromSuperview()
-                }
-                self.deadlineDayLabels = self.newDeadlineDayLabels
-                self.newDeadlineDayLabels.removeAll()
-            }
-        })
+        
     }
     
     private func moveCalendarRight() {
         
-        setDeadlineCalendar(for: deadlineCalendarDate, location: 1)
-        UIView.animate(withDuration: 0.3, animations: {
-            for label in self.deadlineDayLabels {
-                label.center.x -= self.view.frame.width
-            }
-            for label in self.newDeadlineDayLabels {
-                label.center.x -= self.view.frame.width
-            }
-        }, completion: { finished in
-            if finished {
-                for label in self.deadlineDayLabels {
-                    label.removeFromSuperview()
-                }
-                self.deadlineDayLabels = self.newDeadlineDayLabels
-                self.newDeadlineDayLabels.removeAll()
-            }
-        })
+      
     }
     
     
