@@ -53,7 +53,7 @@ struct TableViewData {
             guard let deadline1 = task1.deadline, let deadline2 = task2.deadline else {
                 return false
             }
-            return deadline1 < deadline2
+                return deadline1 < deadline2
         }
         return deadlines
     }
