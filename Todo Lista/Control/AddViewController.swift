@@ -54,15 +54,35 @@ class AddViewController: UIViewController {
     @IBAction func leftArrowTapped(_ sender: UIButton) {
         let newDate = Calendar.current.date(byAdding: .month, value: -1, to: deadlineCalendarDate)
         deadlineCalendarDate = newDate!
-        setDeadlineCalendar(for: deadlineCalendarDate)
         updateMonthLabelText()
+        
+        UIView.animate(withDuration: 0.3, animations: { [self] in
+            for label in deadlineDayLabels {
+                label.center.x += view.frame.width
+            }
+        }, completion: { [self] finished in
+            if finished {
+                setDeadlineCalendar(for: deadlineCalendarDate)
+            }
+        })
+        
     }
     
     @IBAction func rightArrowTapped(_ sender: UIButton) {
         let newDate = Calendar.current.date(byAdding: .month, value: 1, to: deadlineCalendarDate)
         deadlineCalendarDate = newDate!
-        setDeadlineCalendar(for: deadlineCalendarDate)
         updateMonthLabelText()
+        
+        UIView.animate(withDuration: 0.3, animations: { [self] in
+            for label in deadlineDayLabels {
+                label.center.x -= view.frame.width
+            }
+        }, completion: { [self] finished in
+            if finished {
+                setDeadlineCalendar(for: deadlineCalendarDate)
+            }
+        })
+        
     }
     
 //MARK: - Buttons and switches
@@ -72,11 +92,6 @@ class AddViewController: UIViewController {
             if sender.isOn {
                 return calendarView.frame.height + 70
             } else {
-                for label in deadlineDayLabels {
-                    label.backgroundColor = .clear
-                    label.textColor = .black
-                }
-                selectedDeadlineDate = nil
                 return -calendarView.frame.height - 70
             }
         }
@@ -89,7 +104,7 @@ class AddViewController: UIViewController {
         
     }
     
-    @objc func labelTapped(_ sender: UITapGestureRecognizer) {
+    @objc func handleLabelTap(_ sender: UITapGestureRecognizer) {
         for label in deadlineDayLabels {
             label.backgroundColor = .clear
             label.textColor = .black
@@ -124,8 +139,12 @@ class AddViewController: UIViewController {
         let name = nameTextField.text!
         let desc = descTextField.text
         let isImportant = impSwitch.isOn
-        let deadline = selectedDeadlineDate
+        var deadline = selectedDeadlineDate
         let id = Int.random(in: 0...1000000000)
+        
+        if !addDeadlineSwitch.isOn {
+            deadline = nil
+        }
         
         if let id = taskID {
             CoreDataStack.shared.updateTask(id: Int32(id), name: name, desc: desc, deadline: deadline, isImportant: isImportant)
@@ -146,59 +165,66 @@ extension AddViewController {
     
     private func setDeadlineCalendar(for date: Date) {
         
-        calendarView.backgroundColor = .cyan
-        
         for label in deadlineDayLabels {
             label.removeFromSuperview()
         }
         deadlineDayLabels = []
         
-        let range = dlUI.getMonthDateArray(from: date)
-        let startingWeekdayIndex = dlUI.getWeekdayStartingIndex(from: date)
-        let numberOfWeeks = dlUI.getNumberOfWeeksInMonth(dayRange: range, startingDayIndex: startingWeekdayIndex)
-        
-        var xIndex = startingWeekdayIndex
-        var yIndex = 0
-        
-        for i in range {
-            let label = UILabel()
-            label.text = "\(i)."
-            label .textAlignment = .center
-            label.font = UIFont(name: "optima", size: 12.0)
-            calendarView.addSubview(label)
-            deadlineDayLabels.append(label)
+        for n in -1...1 {
+            let dateForCalendar = Calendar.current.date(byAdding: .month, value: n, to: date)!
+            let adjustionX = view.frame.width * CGFloat(n)
             
-            let width = view.frame.width / 7
-            let height = calendarView.frame.height / CGFloat(numberOfWeeks)
-            let x = width * CGFloat(xIndex)
-            let y = height * CGFloat(yIndex)
+            let range = dlUI.getMonthDateArray(from: dateForCalendar)
+            let startingWeekdayIndex = dlUI.getWeekdayStartingIndex(from: dateForCalendar)
+            let numberOfWeeks = dlUI.getNumberOfWeeksInMonth(dayRange: range, startingDayIndex: startingWeekdayIndex)
             
-            label.frame = CGRect(x: x, y: y, width: width, height: height)
+            var xIndex = startingWeekdayIndex
+            var yIndex = 0
             
-            //print("x: \(xIndex), y: \(yIndex)")
-            //print(view.frame.width)
-            
-            if xIndex == 6 {
-                xIndex = 0
-                yIndex += 1
-            } else {
-                xIndex += 1
+            for i in range {
+                let label = UILabel()
+                label.text = "\(i)."
+                label .textAlignment = .center
+                label.font = UIFont(name: "optima", size: 12.0)
+                calendarView.addSubview(label)
+                deadlineDayLabels.append(label)
+                
+                label.tag = i
+                let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleLabelTap))
+                label.addGestureRecognizer(tapGesture)
+                label.isUserInteractionEnabled = true
+                
+                let width = view.frame.width / 7
+                let height = calendarView.frame.height / CGFloat(numberOfWeeks)
+                let x = width * CGFloat(xIndex) + adjustionX
+                let y = height * CGFloat(yIndex)
+                
+                label.frame = CGRect(x: x, y: y, width: width, height: height)
+                
+                //print("x: \(xIndex), y: \(yIndex)")
+                //print(view.frame.width)
+                if labelIsCurrentDate(date: dateForCalendar, labelTag: label.tag) {
+                    label.font = UIFont(name: "optima-bold", size: 15)
+                }
+                
+                if let selectedDate = selectedDeadlineDate {
+                    if labelIsSelectedDate(selectedDate: selectedDate, labelDate: dateForCalendar, labelTag: label.tag) {
+                        label.backgroundColor = UIColor(named: C.Colors.brandColor)
+                        label.textColor = .white
+                    }
+                }
+                
+                if xIndex == 6 {
+                    xIndex = 0
+                    yIndex += 1
+                } else {
+                    xIndex += 1
+                }
+                
             }
             
         }
         
-    }
-    
-//MARK: Move calendar with animation
-    
-    private func moveCalendarLeft() {
-        
-        
-    }
-    
-    private func moveCalendarRight() {
-        
-      
     }
     
     
@@ -269,12 +295,9 @@ extension AddViewController {
         button.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         deleteButton = button
         
-        //Update UI based on task to edit
-        
-        
-        
     }
     
+    //Update UI based on task to edit
     private func displayTaskToEdit() {
         if let id = taskID {
             if let taskToEdit = CoreDataStack.shared.fetchTaskByID(taskID: Int32(id)) {
@@ -291,6 +314,29 @@ extension AddViewController {
         } else {
             deleteButton.isHidden = true
             deleteButton.isUserInteractionEnabled = false
+        }
+    }
+    
+    private func labelIsCurrentDate(date: Date, labelTag: Int) -> Bool {
+        let comps = Calendar.current.dateComponents([.year, .month], from: date)
+        let todayComps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        
+        if comps.year == todayComps.year && comps.month == todayComps.month && labelTag == todayComps.day {
+            return true
+        } else {
+            return false
+        }
+        
+    }
+    
+    private func labelIsSelectedDate(selectedDate: Date, labelDate: Date, labelTag: Int) -> Bool {
+        let selectedComps = Calendar.current.dateComponents([.year, .month, .day], from: selectedDate)
+        let comps = Calendar.current.dateComponents([.year, .month], from: labelDate)
+        
+        if comps.year == selectedComps.year && comps.month == selectedComps.month && labelTag == selectedComps.day {
+            return true
+        } else {
+            return false
         }
     }
     
