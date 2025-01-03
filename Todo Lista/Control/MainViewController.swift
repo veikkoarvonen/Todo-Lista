@@ -7,37 +7,34 @@
 
 import UIKit
 
-class MainViewController: UIViewController, ReloadDelegate {
+class MainViewController: UIViewController {
 
 //MARK: - Variables
     
     var topLabels = [UILabel]()
+    
     var tableViewData = 1
     var tableViewDataArray = [Task]()
+    var taskID: Int?
+    
     let coreData = CoreDataStack()
     let tableData = TableViewData()
-    var taskID: Int?
+  
     
 //MARK: - IBoutlets & actions
     
     @IBOutlet weak var topView: UIView!
     @IBOutlet weak var tableView: UITableView!
-    
     @IBAction func addPressed(_ sender: UIBarButtonItem) {
         performSegue(withIdentifier: C.Segues.mainToAdd, sender: self)
     }
     
+//MARK: - Overriding functions
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setTopLabels()
-        
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        view.addGestureRecognizer(panGesture)
-        
-        tableView.register(UINib(nibName: C.TableView.cellName, bundle: nil), forCellReuseIdentifier: C.TableView.cellID)
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = .none
+        initializeTableView()
         DispatchQueue.main.async {
             self.initializeTableViewCells()
         }
@@ -100,9 +97,9 @@ class MainViewController: UIViewController, ReloadDelegate {
                 }
             }) { [self] _ in
                 if oldDataIndex < tableViewData {
-                    refreshTableView(forDataInt: tableViewData, movedRight: true)
+                    animateTableViewCellsRight()
                 } else if oldDataIndex > tableViewData {
-                    refreshTableView(forDataInt: tableViewData, movedRight: false)
+                    animateTableViewCellsLeft()
                 }
             }
 
@@ -111,13 +108,9 @@ class MainViewController: UIViewController, ReloadDelegate {
         }
     }
     
-    func refreshTableAsDelegate() {
-        tableView.reloadData()
-    }
-    
 //MARK: - TableView animations and data updates
     
-    func initializeTableViewCells() {
+    private func initializeTableViewCells() {
         let dataArray = tableData.getTaskArray()
         tableViewDataArray = dataArray
         
@@ -129,25 +122,22 @@ class MainViewController: UIViewController, ReloadDelegate {
         tableView.beginUpdates()
         tableView.insertRows(at: iPaths, with: .left)
         tableView.endUpdates()
-        
     }
     
-    func refreshTableView(forDataInt dataInt: Int, movedRight: Bool) {
-        var iPathsToRemove: [IndexPath] = []
-        for i in 0..<tableViewDataArray.count {
-            iPathsToRemove.append(IndexPath(row: i, section: 0))
-        }
+    private func animateTableViewCellsRight() {
         
+        //Remove old cells
+        let currentRowsToRemove = Array(0..<tableViewDataArray.count)
+        var indexPathsToRemove: [IndexPath] = []
+        for i in currentRowsToRemove {
+            indexPathsToRemove.append(IndexPath(row: i, section: 0))
+        }
         tableViewDataArray = []
-        
         tableView.beginUpdates()
-        if movedRight {
-            tableView.deleteRows(at: iPathsToRemove, with: .left)
-        } else {
-            tableView.deleteRows(at: iPathsToRemove, with: .right)
-        }
+        tableView.deleteRows(at: indexPathsToRemove, with: .left)
         tableView.endUpdates()
         
+        //Add new cells
         var newDataArray: [Task] {
             switch tableViewData {
             case 0: return tableData.getImportantArray()
@@ -156,29 +146,65 @@ class MainViewController: UIViewController, ReloadDelegate {
             default: return tableData.getTaskArray()
             }
         }
-        
-        var iPathsToAdd: [IndexPath] = []
-        for i in 0..<newDataArray.count {
-            iPathsToAdd.append(IndexPath(row: i, section: 0))
-        }
-        
         tableViewDataArray = newDataArray
         
-        tableView.beginUpdates()
-        if movedRight {
-            tableView.insertRows(at: iPathsToAdd, with: .right)
-        } else {
-            tableView.insertRows(at: iPathsToAdd, with: .left)
+        let newRowsToAdd = Array(0..<newDataArray.count)
+        var indexPathsToAdd: [IndexPath] = []
+        for i in newRowsToAdd {
+            indexPathsToAdd.append(IndexPath(row: i, section: 0))
         }
+        
+        tableView.beginUpdates()
+        tableView.insertRows(at: indexPathsToAdd, with: .right)
+        tableView.endUpdates()
+    }
+    
+    private func animateTableViewCellsLeft() {
+        //Remove old cells
+        let currentRowsToRemove = Array(0..<tableViewDataArray.count)
+        var indexPathsToRemove: [IndexPath] = []
+        for i in currentRowsToRemove {
+            indexPathsToRemove.append(IndexPath(row: i, section: 0))
+        }
+        tableViewDataArray = []
+        tableView.beginUpdates()
+        tableView.deleteRows(at: indexPathsToRemove, with: .right)
         tableView.endUpdates()
         
-        print(tableViewDataArray.count)
+        //Add new cells
+        var newDataArray: [Task] {
+            switch tableViewData {
+            case 0: return tableData.getImportantArray()
+            case 1: return tableData.getTaskArray()
+            case 2: return tableData.getDeadlines()
+            default: return tableData.getTaskArray()
+            }
+        }
+        tableViewDataArray = newDataArray
         
+        let newRowsToAdd = Array(0..<newDataArray.count)
+        var indexPathsToAdd: [IndexPath] = []
+        for i in newRowsToAdd {
+            indexPathsToAdd.append(IndexPath(row: i, section: 0))
+        }
+        
+        tableView.beginUpdates()
+        tableView.insertRows(at: indexPathsToAdd, with: .left)
+        tableView.endUpdates()
     }
     
     
     
 //MARK: - Set UI
+    
+    private func initializeTableView() {
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        view.addGestureRecognizer(panGesture)
+        tableView.register(UINib(nibName: C.TableView.cellName, bundle: nil), forCellReuseIdentifier: C.TableView.cellID)
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = .none
+    }
     
     private func setTopLabels() {
         
@@ -245,7 +271,6 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         cell.taskID = item.id
-        cell.delegate = self
         
         if item.isCompleted {
             cell.backView.alpha = 0.5
@@ -271,6 +296,7 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         let item = tableViewDataArray[indexPath.row]
+        tableView.deselectRow(at: indexPath, animated: true)
         taskID = Int(item.id)
         performSegue(withIdentifier: C.Segues.mainToAdd, sender: self)
     }
