@@ -32,7 +32,6 @@ class AddViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
     }
     
     override func viewDidLayoutSubviews() {
@@ -308,7 +307,7 @@ extension AddViewController {
                     deadlineCalendarDate = dl
                     selectedDeadlineDate = dl
                     addDeadlineSwitch.isOn = true
-                    lowView.center.y += 270
+                    lowView.center.y += calendarView.frame.height + 70
                 }
             }
         } else {

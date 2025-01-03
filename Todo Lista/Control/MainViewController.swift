@@ -111,7 +111,7 @@ class MainViewController: UIViewController, ReloadDelegate {
         }
     }
     
-    func reloadData() {
+    func refreshTableAsDelegate() {
         tableView.reloadData()
     }
     

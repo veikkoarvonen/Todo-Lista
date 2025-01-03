@@ -27,7 +27,6 @@ class TableViewCell: UITableViewCell {
         
         CoreDataStack.shared.markTaskCompleted(id: id, completed: compeleted)
         
-        delegate?.reloadData()
     }
     
     

@@ -23,5 +23,5 @@ struct C {
 }
 
 protocol ReloadDelegate: AnyObject {
-    func reloadData()
+    func refreshTableAsDelegate()
 }
